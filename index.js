@@ -11,22 +11,24 @@ import session from "express-session";
 import AssignmentsRoutes from './Kambaz/Assignments/route.js';
 import EnrollmentsRoutes from './Kambaz/Enrollments/routes.js';
 const app = express();
-app.use(cors({
-   credentials: true,
-   origin: process.env.CLIENT_URL || "http://localhost:3000",
- }));
- const sessionOptions = {
+app.use(
+  cors({
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
+
+  })
+);
+const sessionOptions = {
   secret: process.env.SESSION_SECRET || "kambaz",
   resave: false,
   saveUninitialized: false,
-  cookie: {
-    secure: false,
-    sameSite: "lax",
-  }
 };
 if (process.env.SERVER_ENV !== "development") {
   sessionOptions.proxy = true;
   sessionOptions.cookie = {
+    httpOnly: true,
     sameSite: "none",
     secure: true,
     domain: process.env.SERVER_URL,
