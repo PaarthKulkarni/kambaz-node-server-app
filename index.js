@@ -19,6 +19,10 @@ app.use(cors({
   secret: process.env.SESSION_SECRET || "kambaz",
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    secure: false,
+    sameSite: "lax",
+  }
 };
 if (process.env.SERVER_ENV !== "development") {
   sessionOptions.proxy = true;
@@ -30,6 +34,17 @@ if (process.env.SERVER_ENV !== "development") {
 }
 app.use(session(sessionOptions));
 app.use(express.json());
+
+app.use((req, res, next) => {
+    console.log("--------------------------------");
+    console.log("Request URL:", req.url);
+    console.log("Session ID:", req.sessionID);
+    console.log("Session User:", req.session.currentUser ? req.session.currentUser.username : "Guest (No User)");
+    console.log("Cookies:", req.headers.cookie);
+    console.log("--------------------------------");
+    next();
+});
+
 UserRoutes(app, db);
 CourseRoutes(app, db);
 ModulesRoutes(app, db);

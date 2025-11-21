@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import enrollments from "../Database/enrollments.js";
 export default function UsersDao(db) {
  let { users } = db;
  const createUser = (user) => {
@@ -13,7 +14,11 @@ export default function UsersDao(db) {
    users.find((user) => user.username === username && user.password === password);
  const updateUser = (userId, user) => (users = users.map((u) => (u._id === userId ? user : u)));
  const deleteUser = (userId) => (users = users.filter((u) => u._id !== userId));
+ const findUsersByCourse = (courseId) => {
+    const courseEnrollments = enrollments.filter((enrollment) => enrollment.course === courseId);
+    const enrolledUserIds = courseEnrollments.map((enrollment) => enrollment.user);
+    return users.filter((user) => enrolledUserIds.includes(user._id));
+ }
  return {
-   createUser, findAllUsers, findUserById, findUserByUsername, findUserByCredentials, updateUser, deleteUser };
+   createUser, findAllUsers, findUserById, findUserByUsername, findUserByCredentials, updateUser, deleteUser, findUsersByCourse };
 }
-const updateUser = (userId, user) => (users = users.map((u) => (u._id === userId ? user : u)));
