@@ -11,9 +11,49 @@ import "dotenv/config";
 import session from "express-session";
 import AssignmentsRoutes from './Kambaz/Assignments/route.js';
 import EnrollmentsRoutes from './Kambaz/Enrollments/routes.js';
+import CourseModel from './Kambaz/Courses/model.js';
+import UserModel from './Kambaz/Users/model.js';
+import EnrollmentModel from './Kambaz/Enrollments/model.js';
+
 const app = express();
 const CONNECTION_STRING = process.env.DATABASE_CONNECTION_STRING || "mongodb://127.0.0.1:27017/kambaz"
 mongoose.connect(CONNECTION_STRING);
+const seedDatabase = async () => {
+  try {
+    await CourseModel.deleteMany({});
+    const coursesWithModules = db.courses.map(course => {
+      const courseModules = db.modules
+        .filter(module => module.course === course._id)
+        .map(module => ({
+          _id: module._id,
+          name: module.name,
+          description: module.description,
+          lessons: module.lessons || []
+        }));
+      
+      return {
+        ...course,
+        modules: courseModules
+      };
+    });
+    
+    await CourseModel.insertMany(coursesWithModules);
+    console.log("Database seeded with courses and embedded modules");
+    const userCount = await UserModel.countDocuments();
+    if (userCount === 0) {
+      await UserModel.insertMany(db.users);
+      console.log("Database seeded with initial users");
+    }
+    await EnrollmentModel.deleteMany({});
+    await EnrollmentModel.insertMany(db.enrollments);
+    console.log("Database seeded with enrollments");
+  } catch (error) {
+    console.error("Error seeding database:", error);
+  }
+};
+
+seedDatabase();
+
 app.use(
   cors({
     credentials: true,
